@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#020607">
+  <title>Waterjon Abyss Pinball 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Michroma&family=VT323&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/utils/BufferGeometryUtils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/Pass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+</head>
+<body>
+  <!-- dot-matrix scoreboard -->
+  <header id="hud"><canvas id="dmd" aria-label="Scoreboard"></canvas></header>
+  <!-- the 3D table -->
+  <main id="stage" aria-label="Abyss Pinball table"><canvas id="view"></canvas></main>
+  <div id="hud-buttons">
+    <button id="hb-pause" class="hbtn left" type="button" aria-label="Pause">II</button>
+    <button id="hb-help" class="hbtn left second" type="button" aria-label="How to play">?</button>
+    <button id="hb-sound" class="hbtn right" type="button" aria-label="Mute">&#9834;</button>
+    <button id="hb-music" class="hbtn right second" type="button" aria-label="Music and settings">&#8801;</button>
+  </div>
+  <div id="dark" class="fx-layer"></div>
+  <div id="flash" class="fx-layer"></div>
+  <div id="boot" class="boot"><p>CALIBRATING SONAR<span>...</span></p></div>
+
+  <div id="overlay" class="overlay">
+
+    <!-- START -->
+    <section id="panel-start" class="panel">
+      <p class="eyebrow">WATERJON <span>//</span> TABLE 01 <span>//</span> 3D</p>
+      <h1 class="title">ABYSS<br>PINBALL</h1>
+      <p class="tagline">Three balls. No surface. Pressure is rising.</p>
+      <form id="callsign-form" class="field" autocomplete="off">
+        <label for="callsign">CALLSIGN</label>
+        <input id="callsign" type="text" maxlength="12" placeholder="ENTER CALLSIGN" autocapitalize="characters" spellcheck="false">
+      </form>
+      <button id="btn-start" class="btn primary" type="button">DESCEND</button>
+      <div class="row">
+        <button id="btn-music" class="btn" type="button">SOUND &amp; GRAPHICS</button>
+        <button id="btn-help" class="btn" type="button">HOW TO PLAY</button>
+      </div>
+      <h2 class="board-title">DEPTH RANKINGS</h2>
+      <ol id="start-board" class="board"></ol>
+    </section>
+
+    <!-- GAME OVER -->
+    <section id="panel-over" class="panel hidden">
+      <p class="eyebrow danger">SIGNAL LOST</p>
+      <p class="final-label">FINAL DEPTH SCORE</p>
+      <p id="final-score" class="final">0</p>
+      <p id="final-rank" class="rank"></p>
+      <form id="name-form" class="field hidden" autocomplete="off">
+        <label for="name-input">ENTER CALLSIGN TO LOG YOUR DIVE</label>
+        <div class="row tight">
+          <input id="name-input" type="text" maxlength="12" placeholder="CALLSIGN" autocapitalize="characters" spellcheck="false">
+          <button type="submit" class="btn primary small">LOG</button>
+        </div>
+      </form>
+      <h2 class="board-title">DEPTH RANKINGS</h2>
+      <ol id="over-board" class="board"></ol>
+      <div class="row">
+        <button id="btn-share" class="btn" type="button">SHARE SCORE</button>
+        <button id="btn-again" class="btn primary" type="button">DIVE AGAIN</button>
+      </div>
+      <div id="share-box" class="share-box hidden">
+        <label for="share-text">COPY THIS</label>
+        <input id="share-text" type="text" readonly>
+      </div>
+      <p id="share-status" class="hint" aria-live="polite"></p>
+    </section>
+
+    <!-- PAUSE -->
+    <section id="panel-pause" class="panel hidden">
+      <p class="eyebrow">SYSTEM HOLD</p>
+      <h2 class="title small">PAUSED</h2>
+      <button id="btn-resume" class="btn primary" type="button">RESUME</button>
+      <div class="row">
+        <button id="btn-music-pause" class="btn" type="button">SOUND &amp; GRAPHICS</button>
+        <button id="btn-help-pause" class="btn" type="button">HOW TO PLAY</button>
+      </div>
+      <button id="btn-quit" class="btn ghost" type="button">END RUN</button>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="panel-settings" class="panel hidden">
+      <p class="eyebrow">AUDIO CONSOLE</p>
+      <h2 class="title small">SETTINGS</h2>
+      <p class="final-label">LOADED TRACK</p>
+      <p id="track-name" class="track">No track loaded (silent)</p>
+      <label class="btn file-btn">
+        LOAD TRACK (MP3 / WAV / OGG)
+        <input id="audio-file" type="file" accept="audio/*">
+      </label>
+      <button id="btn-reset-track" class="btn ghost small" type="button">CLEAR TRACK</button>
+      <label class="slider" for="vol">
+        <span>VOLUME <b id="vol-label">70%</b></span>
+        <input id="vol" type="range" min="0" max="100" value="70">
+      </label>
+      <label class="check" for="mute"><input id="mute" type="checkbox"> MUTE ALL SOUND</label>
+      <p class="hint">The track starts when you launch the ball, loops for the whole run, and fades out at game over.</p>
+      <p class="final-label">GRAPHICS</p>
+      <div class="row seg" role="radiogroup" aria-label="Graphics quality">
+        <button class="btn small seg-btn" data-q="auto" type="button">AUTO</button>
+        <button class="btn small seg-btn" data-q="high" type="button">HIGH</button>
+        <button class="btn small seg-btn" data-q="low" type="button">LOW</button>
+      </div>
+      <p id="gfx-note" class="hint">AUTO starts on HIGH and drops to LOW if your device struggles.</p>
+      <button id="btn-settings-close" class="btn primary" type="button">DONE</button>
+    </section>
+
+    <!-- HELP -->
+    <section id="panel-help" class="panel hidden">
+      <p class="eyebrow">DIVE BRIEFING</p>
+      <h2 class="title small">HOW TO PLAY</h2>
+      <ol class="brief">
+        <li><b>Hit the 3 SONAR targets</b> to open the tentacles guarding the <b>KRAKEN LOCK</b>.</li>
+        <li><b>Lock 3 balls</b> to trigger <b>KRAKEN RELEASED</b>, a 3-ball multiball.</li>
+        <li>During multiball, the <b>ABYSS JACKPOT</b> (center target) is lit. Each hit pays more.</li>
+        <li>Make the <b>TEMPEST RAMP</b> and the <b>SONAR ORBIT</b> to light the jackpot on one ball.</li>
+        <li>Chain major shots within 4 seconds for up to a <b>5x combo multiplier</b>.</li>
+        <li>Plunge into the <b>TRENCH LANE</b> (left lane) for a skill shot. The <b>DIVE GATE</b> kickback saves one left-outlane drain.</li>
+      </ol>
+      <div class="cols">
+        <div>
+          <h3>KEYBOARD</h3>
+          <p><kbd>&larr;</kbd>/<kbd>A</kbd> left flipper<br><kbd>&rarr;</kbd>/<kbd>D</kbd> right flipper<br>hold <kbd>SPACE</kbd>, release to plunge<br><kbd>P</kbd> pause &nbsp;<kbd>M</kbd> mute</p>
+        </div>
+        <div>
+          <h3>TOUCH</h3>
+          <p>Left half: left flipper<br>Right half: right flipper<br>Plunger lane (bottom right): pull down, release</p>
+        </div>
+      </div>
+      <button id="btn-help-close" class="btn primary" type="button">UNDERSTOOD</button>
+    </section>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
