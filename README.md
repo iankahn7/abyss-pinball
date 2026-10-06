@@ -11,7 +11,7 @@ The 3D version of the Abyss Pinball table. It has the same rules, scoring and ph
 
 It's built with Three.js (graphics) and Matter.js (physics). It uses the exact Matter build Phaser 3.55 ships, bundled into `game.js`, so the ball behaves exactly like the 2D table. All art is drawn in code, so there are no image files.
 
-Files: `index.html`, `style.css`, `game.js`.
+Files: `index.html`, `style.css`, `game.js`. The Waterjon logo and trident are inlined in `game.js` (the originals are in `assets/`; the source repo's `build.py` re-embeds them).
 
 ## Run it locally
 

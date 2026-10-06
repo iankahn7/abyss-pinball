@@ -301,3 +301,10 @@ kbd {
   .cols { grid-template-columns: 1fr; }
   .title { font-size: 25px; }
 }
+
+/* brand art */
+.brand-logo { display: block; width: min(300px, 74%); height: auto; margin: 0 auto 10px; filter: drop-shadow(0 0 14px rgba(84, 230, 222, 0.55)); opacity: 0.96; }
+.tagline { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.tagline span { text-wrap: balance; }
+.tri { height: 30px; width: auto; flex: none; opacity: 0.8; filter: drop-shadow(0 0 8px rgba(84, 230, 222, 0.55)); }
+.tri.big { display: block; height: 52px; margin: 0 auto 10px; opacity: 0.55; filter: drop-shadow(0 0 10px rgba(217, 52, 36, 0.6)); }
